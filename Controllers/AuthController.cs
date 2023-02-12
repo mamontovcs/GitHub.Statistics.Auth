@@ -17,8 +17,9 @@ namespace GitHub.Statistics.Authentication.Controllers
         }
 
         [HttpGet("/signin-github-token")]
-        public async Task<string> ExchangeCode([FromQuery(Name = "code")] string code)
+        public async Task ExchangeCode([FromQuery(Name = "code")] string code)
         {
+            Console.WriteLine("Code: " + code);
             var options = HttpContext.RequestServices.
                 GetRequiredService<IOptionsMonitor<OAuthOptions>>().Get("GitHub");
 
@@ -37,7 +38,15 @@ namespace GitHub.Statistics.Authentication.Controllers
 
             var accessTokenResponse = JsonConvert.DeserializeObject<AccessTokenResponse>(payload);
 
-            return accessTokenResponse.AccessToken;
+            var httpclient = new HttpClient();
+            var message = new HttpRequestMessage()
+            {
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"http://githubstatistics-web-1:80/test/setToken?token={accessTokenResponse.AccessToken}", UriKind.Absolute)
+            };
+
+            Console.WriteLine("Token:" + accessTokenResponse.AccessToken);
+            await httpclient.SendAsync(message);
         }
     }
 }
